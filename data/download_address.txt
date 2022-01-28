@@ -1,0 +1,16 @@
+hetionet v1.0:
+
+https://github.com/hetio/hetionet/blob/master/hetnet/json/hetionet-v1.0.json.bz2
+
+
+STRING
+
+Q: In the file: "protein.links.v8.3.txt" are the scores multiplied by 1000?
+
+A: Yes, the scores are multiplies by a factor 1000 (and truncated). 872 in the file means a STRING score of 0.872 
+
+https://stringdb-static.org/download/protein.links.detailed.v11.5/9606.protein.links.detailed.v11.5.txt.gz
+
+https://stringdb-static.org/download/protein.info.v11.5/9606.protein.info.v11.5.txt.gz
+
+https://stringdb-static.org/download/protein.aliases.v11.5/9606.protein.aliases.v11.5.txt.gz
