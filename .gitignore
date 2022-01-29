@@ -154,3 +154,5 @@ cython_debug/
 data/hetionet-v1.0.json
 
 data/*.v11.5.txt
+
+kegg_disease/*
