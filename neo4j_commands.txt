@@ -1,0 +1,13 @@
+CREATE CONSTRAINT ON ( anatomy:Anatomy ) ASSERT anatomy.name IS UNIQUE;
+CREATE CONSTRAINT ON ( biologicalprocess:BiologicalProcess ) ASSERT biologicalprocess.name IS UNIQUE;
+CREATE CONSTRAINT ON ( cellularcomponent:CellularComponent ) ASSERT cellularcomponent.name IS UNIQUE;
+CREATE CONSTRAINT ON ( compound:Compound ) ASSERT compound.name IS UNIQUE;
+CREATE CONSTRAINT ON ( disease:Disease ) ASSERT disease.name IS UNIQUE;
+CREATE CONSTRAINT ON ( gene:Gene ) ASSERT gene.name IS UNIQUE;
+CREATE CONSTRAINT ON ( molecularfunction:MolecularFunction ) ASSERT molecularfunction.name IS UNIQUE;
+CREATE CONSTRAINT ON ( pathway:Pathway ) ASSERT pathway.name IS UNIQUE;
+CREATE CONSTRAINT ON ( pharmacologicclass:PharmacologicClass ) ASSERT pharmacologicclass.name IS UNIQUE;
+CREATE CONSTRAINT ON ( sideeffect:SideEffect ) ASSERT sideeffect.name IS UNIQUE;
+CREATE CONSTRAINT ON ( symptom:Symptom ) ASSERT symptom.name IS UNIQUE;
+
+

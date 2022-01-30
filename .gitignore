@@ -152,6 +152,7 @@ cython_debug/
 #.idea/
 
 data/hetionet-v1.0.json
+data/new_hetionet.json
 
 data/*.v11.5.txt
 
