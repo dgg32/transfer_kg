@@ -27,9 +27,9 @@ python import_supplement_node.py /Users/dgg32/Documents/transfer_kg/data/to_s3/d
 python import_supplement_node.py /Users/dgg32/Documents/transfer_kg/data/to_s3/gene_tmp.csv [ip] [password] Gene
 python import_supplement_node.py /Users/dgg32/Documents/transfer_kg/data/to_s3/string_to_add_nodes.csv [ip] [password] Gene
 
-python import_supplement_edge.py /Users/dgg32/Documents/transfer_kg/data/to_s3/drug_disease.csv [ip] [password] Compound Disease treat
-python import_supplement_edge.py /Users/dgg32/Documents/transfer_kg/data/to_s3/pathogen_disease.csv [ip] [password] Pathogen Disease cause
-python import_supplement_edge.py /Users/dgg32/Documents/transfer_kg/data/to_s3/gene_disease.csv [ip] [password] Gene Disease associate
+python import_supplement_edge.py /Users/dgg32/Documents/transfer_kg/data/to_s3/drug_disease.csv [ip] [password] Compound Disease treats
+python import_supplement_edge.py /Users/dgg32/Documents/transfer_kg/data/to_s3/pathogen_disease.csv [ip] [password] Pathogen Disease causes
+python import_supplement_edge.py /Users/dgg32/Documents/transfer_kg/data/to_s3/gene_disease.csv [ip] [password] Gene Disease associates
 python import_edges.py /Users/dgg32/Documents/transfer_kg/data/to_s3/string_to_add_edges.json [ip] [password]
 
 

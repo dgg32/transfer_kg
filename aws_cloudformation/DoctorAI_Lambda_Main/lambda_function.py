@@ -228,7 +228,7 @@ def ask_for_gene(intent_request, conn, db):
     disease_name = get_slot(intent_request, 'disease_name')
     
 
-    query = f"""MATCH path=(d:Disease{{name:'{disease_name}'}})<-[:associate]-(g:Gene) RETURN g.name AS g_name"""
+    query = f"""MATCH path=(d:Disease{{name:'{disease_name}'}})<-[:associates]-(g:Gene) RETURN g.name AS g_name"""
     
     result = conn.query(query,db=db)
     
@@ -379,7 +379,7 @@ def ask_infection_organism(intent_request, conn, db):
     
     #disease_name = "Kyasanur Forest disease"
     
-    query = f"""MATCH path=(d:Disease{{name:'{disease_name}'}})<-[:cause]-(p:Pathogen) RETURN p.name AS p_name"""
+    query = f"""MATCH path=(d:Disease{{name:'{disease_name}'}})<-[:causes]-(p:Pathogen) RETURN p.name AS p_name"""
     
     result = conn.query(query,db=db)
     
