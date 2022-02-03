@@ -75,10 +75,6 @@ sam delete --stack-name sam-app
   
 
 *  **Sixing Huang** - *Concept and Coding*
-*  **Derek Ding** - *AWS management, Neo4j import and Cypher*
-*  **Emil Pastor** - *AWS Lambda*
-*  **Irwan Butar Butar** - *React frontend*
-*  **Shiny Zhu** - *Presentation*
 
   
 
