@@ -12,5 +12,3 @@ A: Yes, the scores are multiplies by a factor 1000 (and truncated). 872 in the f
 https://stringdb-static.org/download/protein.links.detailed.v11.5/9606.protein.links.detailed.v11.5.txt.gz
 
 https://stringdb-static.org/download/protein.info.v11.5/9606.protein.info.v11.5.txt.gz
-
-https://stringdb-static.org/download/protein.aliases.v11.5/9606.protein.aliases.v11.5.txt.gz
