@@ -45,13 +45,16 @@ pathogen_disease_connections = set()
 gene_disease_connections = set()
 
 with open("disease.csv", "a") as output:
-    output.write(",".join(["ko", "name", "description", "disease_category"]) + "\n")
+    output.write(",".join(["ko", "name", "description", "disease_category", "icd10"]) + "\n")
 
 with open("drug.csv", "a") as output:
     output.write(",".join(["ko", "name",]) + "\n")
 
 with open("pathogen_tmp.csv", "a") as output:
-    output.write(",".join(["ko", "name", "taxonomy"]) + "\n")
+    output.write(",".join(["ko", "name"]) + "\n")
+
+with open("gene_tmp.csv", "a") as output:
+    output.write(",".join(["ko", "name"]) + "\n")
 
 with open("drug_disease.csv", "a") as output:
     output.write(",".join(["from", "to"]) + "\n")
@@ -74,7 +77,7 @@ def get_pathogen(pathogen_item, disease_entry):
         if pathogen_ko not in pathogen:
             pathogen[pathogen_ko] = ",".join([f'"{pathogen_ko}"', f'"{pathogen_name}"'])
 
-        pathogen_disease_connections.add(",".join([f'"{pathogen_ko}"', f'"{disease_entry}"']))
+        pathogen_disease_connections.add(",".join([f'"{pathogen_name}"', f'"{disease_entry}"']))
 
 def get_drug(drug_item, disease_entry):
     global drug, drug_disease_connections
@@ -92,7 +95,7 @@ def get_drug(drug_item, disease_entry):
         #    output.write(",".join([f'"{drug_ko}"', f'"{drug_name}"', '""', '"drug"', '""']) + "\n")
         #drug.append([drug_name, drug_ko])
 
-        drug_disease_connections.add(",".join([f'"{drug_ko}"', f'"{disease_entry}"']))
+        drug_disease_connections.add(",".join([f'"{drug_name}"', f'"{disease_entry}"']))
 
 def get_gene(gene_item, disease_entry):
     global gene, gene_disease_connections
@@ -119,7 +122,7 @@ def get_gene(gene_item, disease_entry):
                 #gene[gene_ko] = gene_name
                 gene[gene_ko] = ",".join([f'"{gene_ko}"', f'"{gene_name}"'])
 
-            gene_disease_connections.add(",".join([f'"{gene_ko}"', f'"{disease_entry}"', f'"{gene_action}"']))
+            gene_disease_connections.add(",".join([f'"{gene_name}"', f'"{disease_entry}"', f'"{gene_action}"']))
     
     else:
         search_gene_detail = rx_gene_detail.search(gene_item)
@@ -138,7 +141,7 @@ def get_gene(gene_item, disease_entry):
                 #gene[gene_ko] = gene_name
                 gene[gene_ko] = ",".join([f'"{gene_ko}"', f'"{gene_name}"'])
 
-            gene_disease_connections.add(",".join([f'"{gene_ko}"', f'"{disease_entry}"', "unknown"]))
+            gene_disease_connections.add(",".join([f'"{gene_name}"', f'"{disease_entry}"', "unknown"]))
     #print ()
 
 def get_dblink(link_item, disease_entry):
@@ -216,65 +219,72 @@ for (head, dirs, files) in os.walk(top_folder):
             elif search_pathogen:
                 pathogen_item = search_pathogen.group(1)
 
-                get_pathogen(pathogen_item, disease_entry)
+                get_pathogen(pathogen_item, disease_name)
 
                 is_pathogen = True
             
             elif is_pathogen == True and line.startswith(" "):
                 pathogen_item = line.strip()
 
-                get_pathogen(pathogen_item, disease_entry)
+                get_pathogen(pathogen_item, disease_name)
 
 
             elif search_drug:
                 drug_item = search_drug.group(1)
 
-                get_drug(drug_item, disease_entry)
+                get_drug(drug_item, disease_name)
 
                 is_drug = True
             
             elif is_drug == True and line.startswith(" "):
                 drug_item = line.strip()
 
-                get_drug(drug_item, disease_entry)
+                get_drug(drug_item, disease_name)
             
             if search_gene:
                 
                 gene_item = search_gene.group(1)
 
-                get_gene(gene_item, disease_entry)
+                get_gene(gene_item, disease_name)
 
                 is_gene = True
 
             elif  is_gene == True and line.startswith(" "):
                 gene_item = line.strip()
 
-                get_gene(gene_item, disease_entry)
+                get_gene(gene_item, disease_name)
 
             if search_db:
                 db_link_item = search_db.group(1)
 
-                get_dblink(db_link_item, disease_entry)
+                get_dblink(db_link_item, disease_name)
 
                 is_dblink = True
             
             elif is_dblink == True and line.startswith(" "):
                 db_link_item = line.strip()
 
-                get_dblink(db_link_item, disease_entry)
+                get_dblink(db_link_item, disease_name)
 
             if search_pathway:
                 pathway_item = search_pathway.group(1)
 
-                get_pathway(pathway_item, disease_entry)
-
+                get_pathway(pathway_item, disease_name)
 
 
 
 
         if disease_entry:
             if disease_entry not in disease:
-                disease[disease_entry] = ",".join([f'"{disease_entry}"', f'"{disease_name}"', f'"{disease_description}"', f'"{disease_category}"']) 
+
+                icd10 = ""
+                
+                
+                if disease_name in disease_id and "ICD-10" in disease_id[disease_name]:
+                    #print (disease_id[disease_name])
+                    icd10 = disease_id[disease_name]["ICD-10"]
+                    #print (icd10)
+                disease[disease_entry] = ",".join([f'"{disease_entry}"', f'"{disease_name}"', f'"{disease_description}"', f'"{disease_category}"', f'"{str(icd10)}"'])
             #with open("kegg.csv", "a") as output:
                 #output.write(",".join([f'"{disease_entry}"', f'"{disease_name}"', f'"{disease_description}"', '"disease"', f'"{disease_category}"']) + "\n")
 
@@ -308,5 +318,5 @@ for c in gene_disease_connections:
         output.write(c + "\n")
 
 
-with open("data/disease_kegg_id.json", "w") as f:
+with open("disease_kegg_id.json", "w") as f:
     json.dump(disease_id, f, indent=2)

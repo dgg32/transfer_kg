@@ -151,9 +151,13 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-data/hetionet-v1.0.json
-data/new_hetionet.json
 
-data/*.v11.5.txt
+.vscode/*
+data/*
+aws_cloudformation_templates/cloudformation.pem
+aws_cloudformation/.aws-sam/*
+template.yaml
+cloudformation.pem
+.aws-sam/*
+samconfig.toml
 
-kegg_disease/*
