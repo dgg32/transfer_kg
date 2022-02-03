@@ -65,14 +65,12 @@ sam build
 ```console
 sam deploy --guided --capabilities CAPABILITY_NAMED_IAM
 ```
-# for destruction
+## for destruction
 ```console
 sam delete --stack-name sam-app
 ```
 
-## Authors
-
-  
+# Authors
 
 *  **Sixing Huang** - *Concept and Coding*
 
