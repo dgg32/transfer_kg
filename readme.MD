@@ -22,7 +22,7 @@ AWS CLI and SAM
 
 Chrome
 
-# data preparation
+# Data preparation
 
 The kg.ipynb Jupyter notebook prepares the Hetionet and STRING data, while download_various_kegg.py and parse_disease.py prepares the KEGG data.
 
@@ -54,9 +54,9 @@ python import_edges.py /Users/dgg32/Documents/transfer_kg/data/to_s3/string_to_a
 
 # The definition of Lex
 
-Currently, the deployment of Lex is a bit awkward. The source code in this repository needs to be uploaded to a S3. The bucket and file name are defined in Line 359 and 360 in the template.yaml file for CloudFormation before the sam build command. Otherwise, you will only deploy the same Lex from my s3://datathon-medium-file/doctorai-LexJson-hetionet.zip.
+Currently, the deployment of Lex is a bit awkward. The source code in this repository needs to be uploaded to an S3. The bucket and file name are defined in Line 359 and 360 in the template.yaml file for CloudFormation before the sam build command. Otherwise, you will only deploy the same Lex from my s3://datathon-medium-file/doctorai-LexJson-hetionet.zip.
 
-# for construction
+# For construction
 
 ## build the bundle
 ```console
