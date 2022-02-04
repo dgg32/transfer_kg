@@ -108,6 +108,8 @@ def dispatch(intent_request):
         return recommend_patient_treatment(intent_request, conn, db)
     elif intent_name == 'AskForGene':
         return ask_for_gene(intent_request, conn, db)
+    elif intent_name == 'AskForDrug':
+        return ask_for_drug(intent_request, conn, db)
     else:
         raise Exception('Intent with name ' + intent_name + ' not supported')
 
@@ -241,6 +243,36 @@ def ask_for_gene(intent_request, conn, db):
         
     else:
         text = f"No genes are involved in {disease_name}"
+    
+    text = text[:-2]
+
+    message =  {
+            'contentType': 'PlainText',
+            'content': text
+        }
+    fulfillment_state = "Fulfilled"    
+    return close(intent_request, session_attributes, fulfillment_state, message)
+
+def ask_for_drug(intent_request, conn, db):
+    session_attributes = get_session_attributes(intent_request)
+    
+    slots = get_slots(intent_request)
+    disease_name = get_slot(intent_request, 'disease_name')
+    
+
+    query = f"""MATCH path=(d:Disease{{name:'{disease_name}'}})<-[:treats]-(c:Compound) RETURN c.name AS c_name"""
+    
+    result = conn.query(query,db=db)
+    
+    print (result)
+    if result:
+        text = f"Drugs against {disease_name}: "
+        for r in result:
+            text += f"{r['c_name']}, "
+        diagnosis_exist = True
+        
+    else:
+        text = f"Currently, no drugs are used to treat {disease_name}"
     
     text = text[:-2]
 
