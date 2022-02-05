@@ -112,6 +112,10 @@ def dispatch(intent_request):
         return ask_for_drug(intent_request, conn, db)
     elif intent_name == 'AskForDiagnosesFromSymptom':
         return ask_for_diagnoses_from_symptom(intent_request, conn, db)
+    elif intent_name == "AskForDiseaseDescription":
+        return ask_for_disease_description(intent_request, conn, db)
+    elif intent_name == "AskForGeneticDiseases":
+        return ask_for_genetic_diseases(intent_request, conn, db)
     else:
         raise Exception('Intent with name ' + intent_name + ' not supported')
 
@@ -149,7 +153,8 @@ def check_first_icu_visit(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
     
     slots = get_slots(intent_request)
-    patient_id = get_slot(intent_request, 'name').title()
+    #patient_id = get_slot(intent_request, 'name').title()
+    patient_id = get_slot(intent_request, 'name')
     
     result = conn.query(f"MATCH(p:Patient{{patient_id: '{patient_id}'}})-[r:HAS_STAY]-(n) RETURN COUNT(DISTINCT n) as last_visit",db=db)
     last_visit = str(result[0]["last_visit"])
@@ -166,57 +171,62 @@ def check_last_diagnosis(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
     
     slots = get_slots(intent_request)
-    patient_id = get_slot(intent_request, 'name').title()
+    #patient_id = get_slot(intent_request, 'name').title()
+    patient_id = get_slot(intent_request, 'name')
     
-    if get_slot(intent_request, 'count'):
-        count = get_slot(intent_request, 'count')
-        query = f"""MATCH(p:Patient{{patient_id:'{patient_id}'}})-[:HAS_STAY]->(n:PatientUnitStay)
-        OPTIONAL MATCH (n)-[:HAS_DIAG]->(d:Diagnosis)
-        WITH COUNT(DISTINCT n) AS visit_number
-        MATCH(p:Patient{{patient_id:'{patient_id}'}})-[:HAS_STAY]->(n:PatientUnitStay)
-        OPTIONAL MATCH (n)-[:HAS_DIAG]->(d:Diagnosis)
-        WITH n.hospitaladmitoffset AS visit_order, collect(d.diagnosisstring) AS diagnosis, visit_number
-        ORDER BY visit_order DESC
-        LIMIT {count}
-        RETURN visit_order, diagnosis, visit_number
-        ORDER BY visit_order
-        """
+    # print ("count", get_slot(intent_request, 'count'))
+
+    
+    # if get_slot(intent_request, 'count'):
+    #     count = get_slot(intent_request, 'count')
+    #     query = f"""MATCH(p:Patient{{patient_id:'{patient_id}'}})-[:HAS_STAY]->(n:PatientUnitStay)
+    #     OPTIONAL MATCH (n)-[:HAS_DIAG]->(d:Diagnosis)
+    #     WITH COUNT(DISTINCT n) AS visit_number
+    #     MATCH(p:Patient{{patient_id:'{patient_id}'}})-[:HAS_STAY]->(n:PatientUnitStay)
+    #     OPTIONAL MATCH (n)-[:HAS_DIAG]->(d:Diagnosis)
+    #     WITH n.hospitaladmitoffset AS visit_order, collect(d.diagnosisstring) AS diagnosis, visit_number
+    #     ORDER BY visit_order DESC
+    #     LIMIT {count}
+    #     RETURN visit_order, diagnosis, visit_number
+    #     ORDER BY visit_order
+    #     """
         
-        result = conn.query(query,db=db)
-        diagnosis_exist = False
-        if result:
-            text = f"[CONFIDENTIAL] Patient {patient_id}'s previous diagnosis: "
-            for idx, val in enumerate(result):
-                visit_number = result[idx]["visit_number"]
-                text = text + f"\n[VISIT {str(visit_number-int(count)+idx+1)} of {str(visit_number)}]:"
-                diagnosis = result[idx]["diagnosis"]
-                if diagnosis:
-                    diagnosis_exist = True
-                    for num, diag in enumerate(result[idx]["diagnosis"]):
-                        text = text + f"\n- Diagnosis {num+1}."
-                        for lvl, diag_level in enumerate(diag.split("|")):
-                            text = text + f"\n-- Level {lvl+1}: {diag_level.title()}"
-                else:
-                    text = text + " NONE"
+    #     result = conn.query(query,db=db)
+    #     diagnosis_exist = False
+    #     if result:
+    #         text = f"[CONFIDENTIAL] Patient {patient_id}'s previous diagnosis: "
+    #         for idx, val in enumerate(result):
+    #             visit_number = result[idx]["visit_number"]
+    #             text = text + f"\n[VISIT {str(visit_number-int(count)+idx+1)} of {str(visit_number)}]:"
+    #             diagnosis = result[idx]["diagnosis"]
+    #             if diagnosis:
+    #                 diagnosis_exist = True
+    #                 for num, diag in enumerate(result[idx]["diagnosis"]):
+    #                     text = text + f"\n- Diagnosis {num+1}."
+    #                     for lvl, diag_level in enumerate(diag.split("|")):
+    #                         text = text + f"\n-- Level {lvl+1}: {diag_level.title()}"
+    #             else:
+    #                 text = text + " NONE"
             
-            if diagnosis_exist == False:
-                text = "Patient does not have any previous diagnosis"
+    #         if diagnosis_exist == False:
+    #             text = "Patient does not have any previous diagnosis"
+    # else:
+    #     print ("patient_id", patient_id)
+    query = f"""MATCH path=(p:Patient{{patient_id:'{patient_id}'}})-[:HAS_STAY]->(n:PatientUnitStay)-[:HAS_DIAG]->(d:Diagnosis)-[:IS_DISEASE]->(ds:Disease) RETURN ds.name AS ds_name"""
+    
+    result = conn.query(query,db=db)
+    
+    print (result)
+    diagnosis_exist = False
+    if result:
+        text = f"[CONFIDENTIAL] Patient {patient_id}'s previous diagnosis: {result[0]['ds_name']}"
+        diagnosis_exist = True
+        
     else:
-        query = f"""MATCH path=(p:Patient{{patient_id:'{patient_id}'}})-[:HAS_STAY]->(n:PatientUnitStay)-[:HAS_DIAG]->(d:Diagnosis)-[:IS_DISEASE]->(ds:Disease) RETURN ds.name AS ds_name"""
-        
-        result = conn.query(query,db=db)
-        
-        print (result)
-        diagnosis_exist = False
-        if result:
-            text = f"[CONFIDENTIAL] Patient {patient_id}'s previous diagnosis: {result[0]['ds_name']}"
-            diagnosis_exist = True
-            
-        else:
-            text = f"[CONFIDENTIAL] Patient {patient_id} does not have previous diagnosis"
-        
-        if diagnosis_exist == False:
-            text = f"[CONFIDENTIAL] Patient does not have any previous diagnosis"
+        text = f"[CONFIDENTIAL] Patient {patient_id} does not have previous diagnosis"
+    
+    if diagnosis_exist == False:
+        text = f"[CONFIDENTIAL] Patient does not have any previous diagnosis"
 
     message =  {
             'contentType': 'PlainText',
@@ -310,7 +320,11 @@ def ask_for_diagnoses_from_symptom(intent_request, conn, db):
     separator = "##########"
     #print (result)
     if result:
-        text = f"{len(result)} possible diseases: "
+        d_or_ds = "disease"
+        if len(result) > 1:
+            d_or_ds += "s"
+            
+        text = f"{len(result)} possible {d_or_ds}: "
         for i, r in enumerate(result):
             text += f"{i+1}. {r['d_name']};"
             query_for_all_symptoms = f"MATCH (d:Disease " + "{name:'" + r['d_name']  +  "'}) -[:presents]-> (s:Symptom) RETURN s.name as s_name"
@@ -336,14 +350,81 @@ def ask_for_diagnoses_from_symptom(intent_request, conn, db):
     fulfillment_state = "Fulfilled"    
     return close(intent_request, session_attributes, fulfillment_state, message)
     
+
+def ask_for_disease_description(intent_request, conn, db):
+    session_attributes = get_session_attributes(intent_request)
+    
+    slots = get_slots(intent_request)
+    diseaseName = get_slot(intent_request, 'diseaseName')
+    
+    query = f"MATCH (d:Disease) WHERE d.name = '{diseaseName}' RETURN d.description as d_description"
     
     
+    result = conn.query(query,db=db)
+    
+    separator = "##########"
+    #print (result)
+    if result:
+            
+        text = ""
+        for i, r in enumerate(result):
+            text += f"{r['d_description']}"
+            
+    else:
+        text = f"I can't find information about {diseaseName}"
+    
+    message =  {
+            'contentType': 'PlainText',
+            'content': text
+        }
+    fulfillment_state = "Fulfilled"    
+    return close(intent_request, session_attributes, fulfillment_state, message)
+
+
+def ask_for_genetic_diseases(intent_request, conn, db):
+    session_attributes = get_session_attributes(intent_request)
+    
+    slots = get_slots(intent_request)
+    #patient_id = get_slot(intent_request, 'name').title()
+    patient_id = get_slot(intent_request, 'name')
+
+    
+    #print ("patient_id", patient_id)
+    query = "MATCH (p:Patient {patient_id: '" + patient_id +  "' })-[r:HAS_MUTATION]->(g:Gene)-[r1:associates]->(d:Disease) RETURN g.name as g_name, d.name as d_name"
+    #query = "MATCH (p:Patient {patient_id: '3'})-[r:HAS_MUTATION]-(g:Gene)-[r1:associates]->(d:Disease) RETURN d.name as d_name"
+    #print (query)
+    result = conn.query(query, db=db)
+    #last_visit = str(result[0]["last_visit"])
+    
+    #text = f"Patient {patient_id} first visited the ICU last {last_visit}."
+    
+    if result:
+        d_or_ds = "disease"
+        
+        if len(result) > 1:
+            d_or_ds += "s"
+        text = f"{patient_id} has possibly these genetic {d_or_ds}: "
+        for i, r in enumerate(result):
+            text += f"Mutation in {r['g_name']} can lead to {r['d_name']}; "
+        
+        text = text[:-2]
+    else:
+        text = f"{patient_id} does not seem to any genetic disease."
+        
+    message =  {
+            'contentType': 'PlainText',
+            'content': text
+        }
+    fulfillment_state = "Fulfilled"    
+    return close(intent_request, session_attributes, fulfillment_state, message)
+
 
 def ask_for_readings(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
     
     slots = get_slots(intent_request)
-    patient_id = get_slot(intent_request, 'name').title()
+    #patient_id = get_slot(intent_request, 'name').title()
+    patient_id = get_slot(intent_request, 'name')
     lab = get_slot(intent_request, 'lab').lower()
     lab_title = lab.title()
 
@@ -414,7 +495,9 @@ def ask_patient_record(intent_request, conn, db):
     
     slots = get_slots(intent_request)
     name = get_slot(intent_request, 'name').title()
-    patient_name = get_slot(intent_request, 'patient_name').title()
+    #patient_name = get_slot(intent_request, 'patient_name').title()
+    patient_name = get_slot(intent_request, 'patient_name')
+
     
     if name != patient_name:
         raise Exception(f'{patient_name} does not exist!')
@@ -440,7 +523,8 @@ def ask_patient_ethnicity(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
     
     slots = get_slots(intent_request)
-    name = get_slot(intent_request, 'name').title()
+    #name = get_slot(intent_request, 'name').title()
+    name = get_slot(intent_request, 'name')
     
     query = f"""MATCH(p:Patient{{patient_id:'{name}'}})
     RETURN p.ethnicity as ethnicity"""
@@ -494,7 +578,8 @@ def recommend_patient_treatment(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
     
     slots = get_slots(intent_request)
-    patient_id = get_slot(intent_request, 'name').title()
+    #patient_id = get_slot(intent_request, 'name').title()
+    patient_id = get_slot(intent_request, 'name')
     
     query = f"""MATCH (p:Patient {{patient_id: '{patient_id}'}})-[:HAS_STAY]->(ps:PatientUnitStay)-[r:HAS_LAB]->(l:Lab)
     match (:Patient {{patient_id: '{patient_id}'}})-[:HAS_STAY]->(ps:PatientUnitStay)-[:HAS_TREATMENT]->(tr:Treatment)
