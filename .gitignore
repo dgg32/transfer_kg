@@ -161,3 +161,4 @@ cloudformation.pem
 .aws-sam/*
 samconfig.toml
 
+.DS_Store

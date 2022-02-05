@@ -9,7 +9,12 @@ def get_slots(intent_request):
     
 def get_slot(intent_request, slotName):
     slots = get_slots(intent_request)
-    if slots is not None and slotName in slots and slots[slotName] is not None:
+    if slots[slotName]["shape"] == "List":
+        responses = []
+        for v in slots[slotName]['values']:
+            responses.append(v["value"]['interpretedValue'])
+        return responses
+    elif slots[slotName]["shape"] == "Scalar":
         return slots[slotName]['value']['interpretedValue']
     else:
         return None    

@@ -110,6 +110,8 @@ def dispatch(intent_request):
         return ask_for_gene(intent_request, conn, db)
     elif intent_name == 'AskForDrug':
         return ask_for_drug(intent_request, conn, db)
+    elif intent_name == 'AskForDiagnosesFromSymptom':
+        return ask_for_diagnoses_from_symptom(intent_request, conn, db)
     else:
         raise Exception('Intent with name ' + intent_name + ' not supported')
 
@@ -227,22 +229,22 @@ def ask_for_gene(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
     
     slots = get_slots(intent_request)
-    disease_name = get_slot(intent_request, 'disease_name')
+    diseaseName = get_slot(intent_request, 'diseaseName')
     
 
-    query = f"""MATCH path=(d:Disease{{name:'{disease_name}'}})<-[:associates]-(g:Gene) RETURN g.name AS g_name"""
+    query = f"""MATCH path=(d:Disease{{name:'{diseaseName}'}})<-[:associates]-(g:Gene) RETURN g.name AS g_name"""
     
     result = conn.query(query,db=db)
     
     print (result)
     if result:
-        text = f"Genes associated with {disease_name}: "
+        text = f"Genes associated with {diseaseName}: "
         for r in result:
             text += f"{r['g_name']}, "
         diagnosis_exist = True
         
     else:
-        text = f"No genes are involved in {disease_name}"
+        text = f"No genes are involved in {diseaseName}"
     
     text = text[:-2]
 
@@ -256,23 +258,25 @@ def ask_for_gene(intent_request, conn, db):
 def ask_for_drug(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
     
+    print ("ask for drug", intent_request)
+    
     slots = get_slots(intent_request)
-    disease_name = get_slot(intent_request, 'disease_name')
+    diseaseName = get_slot(intent_request, 'diseaseName')
     
 
-    query = f"""MATCH path=(d:Disease{{name:'{disease_name}'}})<-[:treats]-(c:Compound) RETURN c.name AS c_name"""
+    query = f"""MATCH path=(d:Disease{{name:'{diseaseName}'}})<-[:treats]-(c:Compound) RETURN c.name AS c_name"""
     
     result = conn.query(query,db=db)
     
     print (result)
     if result:
-        text = f"Drugs against {disease_name}: "
+        text = f"Drugs against {diseaseName}: "
         for r in result:
             text += f"{r['c_name']}, "
         diagnosis_exist = True
         
     else:
-        text = f"Currently, no drugs are used to treat {disease_name}"
+        text = f"Currently, no drugs are used to treat {diseaseName}"
     
     text = text[:-2]
 
@@ -282,6 +286,58 @@ def ask_for_drug(intent_request, conn, db):
         }
     fulfillment_state = "Fulfilled"    
     return close(intent_request, session_attributes, fulfillment_state, message)
+
+def ask_for_diagnoses_from_symptom(intent_request, conn, db):
+    session_attributes = get_session_attributes(intent_request)
+    
+    slots = get_slots(intent_request)
+    symptoms = get_slot(intent_request, 'symptom')
+    
+    print (symptoms)
+    ###MATCH (s1:Symptom {name: "Dyspepsia"}) <-[:presents]- (d:Disease) 
+    ###MATCH (s2:Symptom {name: "Hiccup"}) <-[:presents]- (d:Disease) 
+    ###MATCH (s3:Symptom {name: "Edema"}) <-[:presents]- (d:Disease) 
+    ###RETURN d.name
+    query = ""
+    
+    for i, s in enumerate(symptoms):
+        query += f"MATCH (s{i}:Symptom " + "{name:'" + s + "'}) <- [:presents]- (d:Disease)  "
+    
+    query += "RETURN d.name AS d_name"
+    
+    result = conn.query(query,db=db)
+    
+    separator = "##########"
+    #print (result)
+    if result:
+        text = f"{len(result)} possible diseases: "
+        for i, r in enumerate(result):
+            text += f"{i+1}. {r['d_name']};"
+            query_for_all_symptoms = f"MATCH (d:Disease " + "{name:'" + r['d_name']  +  "'}) -[:presents]-> (s:Symptom) RETURN s.name as s_name"
+            result_symptoms = conn.query(query_for_all_symptoms,db=db)
+            if result_symptoms:
+                text += " symptoms are: "
+            
+            for j, s in enumerate(result_symptoms):
+                text += f"  {j+1}. {s['s_name']}"
+            
+            text += separator
+    #    diagnosis_exist = True
+        
+    else:
+        text = f"I can't find any disease with those symptoms"
+    
+    text = text[:-len(separator)]
+    #text = str(symptoms)
+    message =  {
+            'contentType': 'PlainText',
+            'content': text
+        }
+    fulfillment_state = "Fulfilled"    
+    return close(intent_request, session_attributes, fulfillment_state, message)
+    
+    
+    
 
 def ask_for_readings(intent_request, conn, db):
     session_attributes = get_session_attributes(intent_request)
