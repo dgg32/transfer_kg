@@ -53,6 +53,4 @@ LOAD CSV WITH HEADERS FROM 'file:///patient_patientunitstay.csv' AS row MERGE (p
 LOAD CSV WITH HEADERS FROM 'file:///patientunitstay_disease.csv' AS row MERGE (ps:PatientUnitStay {psid: row.from}) MERGE (d:Diagnosis {diagnosisid: row.to}) MERGE (ps)-[r:HAS_DIAG]->(d);
 LOAD CSV WITH HEADERS FROM 'file:///diagnosis_disease.csv' AS row MERGE (d:Diagnosis {diagnosisid: row.from}) MERGE (ds:Disease {name: row.to}) MERGE (d)-[r:IS_DISEASE]->(ds);
 
-LOAD CSV WITH HEADERS FROM 'file:///patient.csv' AS row MERGE (p:Patient {patient_id: row.patient_id, name: row.name, gender: row.gender});
-
 LOAD CSV WITH HEADERS FROM 'file:///mutated_gene.csv' AS row MERGE (p:Patient {patient_id: row.from}) MERGE (g:Gene {name: row.to}) MERGE (p)-[r:HAS_MUTATION]->(g);
